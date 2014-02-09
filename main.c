@@ -74,13 +74,13 @@
 int main(void)
 {
 	//PWM Code
-	WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
-	  P1DIR &= 0x00;                            // P1.2 and P1.3 output (Turns off)
-	  P1SEL |= 0x0C;                            // P1.2 and P1.3 TA1/2 options
-	  CCR0 = 512-1;                             // PWM Period
-	  CCTL1 = OUTMOD_7;                         // CCR1 reset/set
-	  CCR1 = 150;                               // CCR1 PWM duty cycle (250 = 50%)
-	  TACTL = TASSEL_2 + MC_1;                  // SMCLK, up mode
+  WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+  P1DIR &= 0x00;                            // P1.2 and P1.3 output (Turns off)
+  P1SEL |= 0x0C;                            // P1.2 and P1.3 TA1/2 options
+  CCR0 = 512-1;                             // PWM Period
+  CCTL1 = OUTMOD_7;                         // CCR1 reset/set
+  CCR1 = 150;                               // CCR1 PWM duty cycle (250 = 50%)
+  TACTL = TASSEL_2 + MC_1;                  // SMCLK, up mode
 
   //ADC Code
   //WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
@@ -96,28 +96,23 @@ int main(void)
   ADC10DTC1 = 0x20;                         // 32 conversions
   ADC10AE0 |= 0x02;                         // P1.1 ADC option select
   P1DIR |= 0x01;                            // Set P1.0 output
-
-  for (;;)
-  {
+  
+  for (;;) {
     ADC10CTL0 &= ~ENC;
     while (ADC10CTL1 & BUSY);               // Wait if ADC10 core is active
     ADC10SA = 0x200;                        // Data buffer start
     ADC10CTL0 |= ENC + ADC10SC;             // Sampling and conversion start
     __bis_SR_register(CPUOFF + GIE);        // LPM0 (Low power mode), ADC10_ISR will force exit
     P1OUT &= ~0x01;                         // Clear P1.0 LED off
-    if(ADC10MEM <= SENSOR_THRESH)			// ADC10MEM is register that converts value
-    {
-        P1OUT |= 0x01;                          // Set P1.0 LED on
-        P1DIR |= 0x0D;							//Sets pins as outputs
-        P1SEL |= 0x0C;							//Sets pins to peripheral function
-    }
-    else
-    {
-    	P1DIR &= 0x00;
-        P1OUT &= 0x00;                          // Set P1.0 LED on
+    if(ADC10MEM <= SENSOR_THRESH) {			// ADC10MEM is register that converts value
+      P1OUT |= 0x01;                        // Set P1.0 LED on
+      P1DIR |= 0x0D;	    	      	//Sets pins as outputs
+      P1SEL |= 0x0C;							//Sets pins to peripheral function
+    } else {
+      P1DIR &= 0x00;
+      P1OUT &= 0x00;                          // Set P1.0 LED on
     }
   }
-
 }
 
 // ADC10 interrupt service routine
