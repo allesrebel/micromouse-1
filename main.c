@@ -70,7 +70,7 @@
 #include <msp430.h>
 #include <stdbool.h>
 
-#define SENSOR_THRESH 900					//Minimum value detectable
+#define SENSOR_THRESH 900		    //Minimum value detectable
 
 int main() {
   //PWM Code
