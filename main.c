@@ -68,12 +68,12 @@
 //******************************************************************************
 
 #include <msp430.h>
+#include <stdbool.h>
 
 #define SENSOR_THRESH 900					//Minimum value detectable
 
-int main(void)
-{
-	//PWM Code
+int main() {
+  //PWM Code
   WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
   P1DIR &= 0x00;                            // P1.2 and P1.3 output (Turns off)
   P1SEL |= 0x0C;                            // P1.2 and P1.3 TA1/2 options
@@ -83,7 +83,7 @@ int main(void)
   TACTL = TASSEL_2 + MC_1;                  // SMCLK, up mode
 
   //ADC Code
-  //WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+  //WDTCTL = WDTPW + WDTHOLD;               // Stop WDT
   ADC10CTL1 = CONSEQ_2+INCH_1;              // Repeat single channel
   ADC10CTL0 = SREF_1 + ADC10SHT_2 + MSC + REFON + ADC10ON + ADC10IE;
   __enable_interrupt();                     // Enable interrupts.
@@ -97,35 +97,32 @@ int main(void)
   ADC10AE0 |= 0x02;                         // P1.1 ADC option select
   P1DIR |= 0x01;                            // Set P1.0 output
   
-  for (;;) {
+  while(true) {
     ADC10CTL0 &= ~ENC;
     while (ADC10CTL1 & BUSY);               // Wait if ADC10 core is active
     ADC10SA = 0x200;                        // Data buffer start
     ADC10CTL0 |= ENC + ADC10SC;             // Sampling and conversion start
     __bis_SR_register(CPUOFF + GIE);        // LPM0 (Low power mode), ADC10_ISR will force exit
     P1OUT &= ~0x01;                         // Clear P1.0 LED off
-    if(ADC10MEM <= SENSOR_THRESH) {			// ADC10MEM is register that converts value
+    if(ADC10MEM <= SENSOR_THRESH) {	    // ADC10MEM is register that converts value
       P1OUT |= 0x01;                        // Set P1.0 LED on
-      P1DIR |= 0x0D;	    	      	//Sets pins as outputs
+      P1DIR |= 0x0D;	    	      	    //Sets pins as outputs
       P1SEL |= 0x0C;							//Sets pins to peripheral function
     } else {
       P1DIR &= 0x00;
-      P1OUT &= 0x00;                          // Set P1.0 LED on
+      P1OUT &= 0x00;                        // Set P1.0 LED on
     }
   }
 }
 
 // ADC10 interrupt service routine
 #pragma vector=ADC10_VECTOR
-__interrupt void ADC10_ISR(void)
-{
+__interrupt void ADC10_ISR(void) {
   __bic_SR_register_on_exit(CPUOFF);        // Clear CPUOFF bit from 0(SR)
 }
 
 #pragma vector=TIMER0_A0_VECTOR
-__interrupt void ta0_isr(void)
-{
+__interrupt void ta0_isr(void) {
   TACTL = 0;
   LPM0_EXIT;                                // Exit LPM0 on return
 }
-
