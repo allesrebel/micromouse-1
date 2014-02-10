@@ -70,11 +70,11 @@
 #include <msp430.h>
 #include <stdbool.h>
 
-#define SENSOR_THRESH 900		    //Minimum value detectable
+#define SENSOR_THRESH 900		    // Minimum value detectable
 
 int main() {
   //PWM Code
-  WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+  WDTCTL = WDTPW + WDTHOLD;                 // Stop Watchdog Timer
   P1DIR &= 0x00;                            // P1.2 and P1.3 output (Turns off)
   P1SEL |= 0x0C;                            // P1.2 and P1.3 TA1/2 options
   CCR0 = 512-1;                             // PWM Period
@@ -83,7 +83,7 @@ int main() {
   TACTL = TASSEL_2 + MC_1;                  // SMCLK, up mode
 
   //ADC Code
-  //WDTCTL = WDTPW + WDTHOLD;               // Stop WDT
+  //WDTCTL = WDTPW + WDTHOLD;               // Stop Watchdog Timer
   ADC10CTL1 = CONSEQ_2+INCH_1;              // Repeat single channel
   ADC10CTL0 = SREF_1 + ADC10SHT_2 + MSC + REFON + ADC10ON + ADC10IE;
   __enable_interrupt();                     // Enable interrupts.
@@ -106,8 +106,8 @@ int main() {
     P1OUT &= ~0x01;                         // Clear P1.0 LED off
     if(ADC10MEM <= SENSOR_THRESH) {	    // ADC10MEM is register that converts value
       P1OUT |= 0x01;                        // Set P1.0 LED on
-      P1DIR |= 0x0D;	    	      	    //Sets pins as outputs
-      P1SEL |= 0x0C;							//Sets pins to peripheral function
+      P1DIR |= 0x0D;	    	      	    // Sets pins as outputs
+      P1SEL |= 0x0C;	         	    // Sets pins to peripheral function
     } else {
       P1DIR &= 0x00;
       P1OUT &= 0x00;                        // Set P1.0 LED on
