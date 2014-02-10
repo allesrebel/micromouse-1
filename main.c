@@ -79,7 +79,7 @@ int main() {
   P1SEL |= 0x0C;                            // P1.2 and P1.3 TA1/2 options
   CCR0 = 512-1;                             // PWM Period
   CCTL1 = OUTMOD_7;                         // CCR1 reset/set
-  CCR1 = 150;                               // CCR1 PWM duty cycle (250 = 50%)
+  CCR1 = 150;                               // CCR1 PWM duty cycle (256 = 50%)
   TACTL = TASSEL_2 + MC_1;                  // SMCLK, up mode
 
   //ADC Code
