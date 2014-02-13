@@ -1,15 +1,18 @@
 CC=msp430-gcc
-CFLAGS=-Os -Wall -g -mmcu=msp430g2231 -nostdlib
-OBJS=main.o
+CFLAGS=-Wall -mmcu=msp430g2553 -mdisable-watchdog
+OBJS=main.c
 
-all: $(OBJS)
-	$(CC) $(CFLAGS) -o main.elf $(OBJS)
-
-%.o: %.c
-	$(CC) $(CFLAGS) -c $<
+all:
+	$(CC) $(CFLAGS) $(OBJS)
 
 program: all
-	sudo mspdebug rf2500 "prog main.elf"
+	sudo mspdebug rf2500 "prog a.out"
+
+erase:
+	sudo mspdebug rf2500 "erase"
+
+run: program
+	sudo mspdebug rf2500 "run a.out"
 
 clean:
-	rm -fr main.elf $(OBJS)
+	rm -fr a.out
