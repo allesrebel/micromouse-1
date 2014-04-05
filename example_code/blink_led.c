@@ -70,7 +70,7 @@
 #include <msp430.h>
 #include <stdbool.h>
 
-#define SENSOR_THRESH 900		    // Minimum value detectable
+#define SENSOR_THRESH 900         // Minimum value detectable
 
 int main() {
   //PWM Code
@@ -96,7 +96,7 @@ int main() {
   ADC10DTC1 = 0x20;                         // 32 conversions
   ADC10AE0 |= 0x02;                         // P1.1 ADC option select
   P1DIR |= 0x01;                            // Set P1.0 output
-  
+
   while(true) {
     ADC10CTL0 &= ~ENC;
     while (ADC10CTL1 & BUSY);               // Wait if ADC10 core is active
@@ -104,10 +104,10 @@ int main() {
     ADC10CTL0 |= ENC + ADC10SC;             // Sampling and conversion start
     __bis_SR_register(CPUOFF + GIE);        // LPM0 (Low power mode), ADC10_ISR will force exit
     P1OUT &= ~0x01;                         // Clear P1.0 LED off
-    if(ADC10MEM <= SENSOR_THRESH) {	    // ADC10MEM is register that converts value
+    if(ADC10MEM <= SENSOR_THRESH) {     // ADC10MEM is register that converts value
       P1OUT |= 0x01;                        // Set P1.0 LED on
-      P1DIR |= 0x0D;	    	      	    // Sets pins as outputs
-      P1SEL |= 0x0C;	         	    // Sets pins to peripheral function
+      P1DIR |= 0x0D;                    // Sets pins as outputs
+      P1SEL |= 0x0C;                 // Sets pins to peripheral function
     } else {
       P1DIR &= 0x00;
       P1OUT &= 0x00;                        // Set P1.0 LED on
