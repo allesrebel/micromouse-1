@@ -11,17 +11,18 @@ micromouse maze and proceeding to run through it.
 * sensors values for each dir
 * use gyro (I^2 * C)
 * gyro will provide the amount of distance traveled
-
-* traversing 16x16 maze:
+* always traversing 16x16 maze:
 * 0 -> 255 potential `nodes`
 
 ## Runs
+* all parts of the maze can be accessed by the micromouse
+
 #### Run 1 - Safe run
 * Build up entirety of maze and store it
 
 #### Run 2 - Optimize
 * Find the fastest route
-* Delete unneeded nodes
+* Delete unneeded `nodes`
 
 #### Run 3 - Score run
 * mouse goes to the destination and back to the starting point
@@ -52,4 +53,4 @@ How do we favor a node?
 ### Misc.
 #### Intended Algorithms
 * dead end algo
-* building a node automatically (based of gyro-derived distance)
+* building a node automatically (based off gyro-derived distance)
