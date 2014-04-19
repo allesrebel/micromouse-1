@@ -1,6 +1,6 @@
 # California Micromouse
 This repo contains the code powering Cal Poly SLO IEEE's micromouse.
-f
+
 The microcontroller we are using is the MSP430 and the A\* algorithm.
 
 # Spec
