@@ -8,13 +8,13 @@
 int direction;
 
 void setLeftTurn() {
-   int direction = 0;
+   direction = 0;
 }
 void setRightTurn() {
-   int direction = 1;
+   direction = 1;
 }
 void setForward() {
-   int direction = 2;
+   direction = 2;
 }
 
 void main(void) {
@@ -31,18 +31,17 @@ void main(void) {
 
    while(1) {
       __delay_cycles(8000000);
-            setLeftTurn();
+      setLeftTurn();
       __delay_cycles(8000000);
-            setRightTurn();
+      setRightTurn();
       __delay_cycles(8000000);
-            setForward();
+      setForward();
    }
-
 }
 
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void Timer_A (void) {
-   if(direction = 0) {        // left turn
+   if(direction == 0) {        // left turn
       switch(TA1IV) {
          case 2:  P1OUT ^= BIT1;       // Toggle P1.1
                   TA1CCR1 += DELTA;     // Prepare for second wave
@@ -50,11 +49,11 @@ __interrupt void Timer_A (void) {
          case 4:  P1OUT ^= BIT2;       // Toggle P1.2
                   TA1CCR1 += -DELTA;   // Reset for first wave
                   break;
-         case 10: P1OUT ^= BIT1 + BIT2;
+         default: P1OUT ^= BIT1 + BIT2;
                   break;
       }
    }
-   if(direction = 1) {        // right turn
+   else if(direction == 1) {        // right turn
       switch(TA1IV) {
          case 2:  P1OUT ^= BIT2;       // Toggle P1.2
                   TA1CCR1 += DELTA;     // Prepare for second wave
@@ -62,7 +61,7 @@ __interrupt void Timer_A (void) {
          case 4:  P1OUT ^= BIT1;       // Toggle P1.1
                   TA1CCR1 += -DELTA;   // Reset for first wave
                   break;
-         case 10: P1OUT ^= BIT1 + BIT2;
+         default: P1OUT ^= BIT1 + BIT2;
                   break;
       }
    }
