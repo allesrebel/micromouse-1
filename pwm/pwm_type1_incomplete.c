@@ -5,7 +5,7 @@
 
 #define DELTA 500
 
-int direction;
+static int direction;
 
 void setLeftTurn() {
    direction = 0;
@@ -39,7 +39,7 @@ void main(void) {
    }
 }
 
-#pragma vector=TIMER0_A0_VECTOR
+#pragma vector=TIMER0_A1_VECTOR
 __interrupt void Timer_A (void) {
    if(direction == 0) {        // left turn
       switch(TA1IV) {
@@ -47,9 +47,9 @@ __interrupt void Timer_A (void) {
                   TA1CCR1 += DELTA;     // Prepare for second wave
                   break;
          case 4:  P1OUT ^= BIT2;       // Toggle P1.2
-                  TA1CCR1 += -DELTA;   // Reset for first wave
+                  TA1CCR1 += 0-DELTA;   // Reset for first wave
                   break;
-         default: P1OUT ^= BIT1 + BIT2;
+         default: P1OUT ^= BIT1 + BIT2; // Flip both
                   break;
       }
    }
@@ -59,9 +59,9 @@ __interrupt void Timer_A (void) {
                   TA1CCR1 += DELTA;     // Prepare for second wave
                   break;
          case 4:  P1OUT ^= BIT1;       // Toggle P1.1
-                  TA1CCR1 += -DELTA;   // Reset for first wave
+                  TA1CCR1 += 0-DELTA;   // Reset for first wave
                   break;
-         default: P1OUT ^= BIT1 + BIT2;
+         default: P1OUT ^= BIT1 + BIT2; // Flip both
                   break;
       }
    }
