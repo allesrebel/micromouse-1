@@ -20,16 +20,44 @@ void setRightTurn() {
 void setForward() {
    direction = FORWARD;
 }
+void turnLeft() {
+   if(wave1) {
+      P1OUT &= ~BIT1;      // Reset P1.1
+      TA1CCR1 += DELTA;    // Prepare for second wave (by adding delta)
+      wave1 = 0;           // Set wave1 flag low
+   }
+   else {
+      P1OUT &= ~BIT2;      // Reset P1.2
+      TA1CCR1 += 0-DELTA;  // Return for first wave (by removing delta)
+      wave1 = 1;           // Set wave1 flag high
+   }
+}
+void turnRight() {
+   if(wave1) {
+      P1OUT &= ~BIT2;      // Reset P1.2
+      TA1CCR1 += DELTA;    // Prepare for second wave (by adding delta)
+      wave1 = 0;           // Set wave1 flag low
+   }
+   else {
+      P1OUT &= ~BIT1;      // Reset P1.1
+      TA1CCR1 += 0-DELTA;  // Return for first wave (by removing delta)
+      wave1 = 1;           // Set wave1 flag high
+   }
+}
+void goForward() {
+   P1OUT ^= BIT1 + BIT2;
+}
 
 void main(void) {
 
    WDTCTL = WDTPW | WDTHOLD;  // Stop watchdog timer
 
-   P1DIR |= BIT1 + BIT2;      // P1.1, P1.2 output
-   //P1SEL |= BIT1 + BIT2;      // P1.1, P1.2 output
+   P1DIR |= BIT2 + BIT1;      // P1.1, P1.2 output
    TA1CTL = TASSEL_1 + MC_1;   // T_A, select smclk, up mode
    TA1CCTL1 |= CCIE;             // CCR1 interrupt enabled
    TA1CCTL2 |= OUTMOD_7 + CCIE;  // CCR2, set/reset mode
+
+   //P1OUT &= ~(BIT2 + BIT1);
 
    TA1CCR1 = 1000;               // CCR1 = on time
    TA1CCR2 = 2000;               // CCR2 = period
@@ -38,51 +66,26 @@ void main(void) {
 
    while(1) {
       __delay_cycles(8000000);
+      setForward();
+      __delay_cycles(8000000);
       setLeftTurn();
       __delay_cycles(8000000);
       setRightTurn();
-      __delay_cycles(8000000);
-      setForward();
    }
 }
 
-#pragma vector=TIMER1_A3_VECTOR
+#pragma vector=TIMER0_A1_VECTOR
 __interrupt void Timer_A (void) {
-   if(direction == LEFT) {        // left turn
-      switch(TA1IV) {
-         case 2:  if(wave1) {
-                     P1OUT &= ~BIT1;      // Toggle P1.1
-                     TA1CCR1 += DELTA;    // Prepare for second wave
-                     wave1 = 0;           // Set wave1 flag low
-                  }
-                  else {
-                     P1OUT &= ~BIT2;      // Toggle P1.2
-                     TA1CCR1 += 0-DELTA;  // Reset for first wave
-                     wave1 = 1;           // Set wave1 flag high
-                  }
-                  break;
-         default: P1OUT |= BIT1 + BIT2;   // Set both
-                  break;
-      }
-   }
-   else if(direction == RIGHT) {   // right turn
-      switch(TA1IV) {
-         case 2:  if(wave1) {
-                     P1OUT &= ~BIT2;      // Toggle P1.1
-                     TA1CCR1 += DELTA;    // Prepare for second wave
-                     wave1 = 0;           // Set wave1 flag low
-                  }
-                  else {
-                     P1OUT &= ~BIT1;      // Toggle P1.2
-                     TA1CCR1 += 0-DELTA;  // Reset for first wave
-                     wave1 = 1;           // Set wave1 flag high
-                  }
-                  break;
-         default: P1OUT |= BIT1 + BIT2;   // Set both
-                  break;
-      }
-   }
-   else {                // forward
-      P1OUT ^= BIT1 + BIT2;
+   switch(TA1IV) {
+      case 2:  if(direction == LEFT) {
+                  turnLeft();
+               } else if (direction == RIGHT) {
+                  turnRight();
+               } else {
+                  goForward();
+               }
+               break;
+      default: P1OUT |= BIT1 + BIT2;   // Set both
+               break;
    }
 }
