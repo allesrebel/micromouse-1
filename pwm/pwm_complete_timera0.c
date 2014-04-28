@@ -1,7 +1,7 @@
 #include <msp430.h>
 
-#define TURN_CONST 5000
-#define HALF_PERIOD 15000
+#define TURN_CONST 4000
+#define HALF_PERIOD 12000
 
 void setLeftTurn() {
    TA0CCR1 = HALF_PERIOD - TURN_CONST;
@@ -14,6 +14,11 @@ void setRightTurn() {
 void setForward() {
    TA0CCR1 = HALF_PERIOD;     // CCR1 = wave 1 off time
    TA0CCR2 = HALF_PERIOD;     // CCR2 = wave 2 off time
+}
+
+void setSlow() {
+   TA0CCR1 = HALF_PERIOD / 4;
+   TA0CCR2 = HALF_PERIOD / 4;
 }
 
 void clockInit() {
@@ -43,11 +48,7 @@ void main(void) {
 
    while(1) {
       __delay_cycles(8000000);
-      setForward();
-      __delay_cycles(8000000);
-      setLeftTurn();
-      __delay_cycles(8000000);
-      setRightTurn();
+      setSlow();
    }
 }
 
