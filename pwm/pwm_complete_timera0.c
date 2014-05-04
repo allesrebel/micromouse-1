@@ -1,7 +1,7 @@
 #include <msp430.h>
 
-#define TURN_CONST 4000
-#define HALF_PERIOD 12000
+#define TURN_CONST 5000
+#define HALF_PERIOD 15000
 
 void setLeftTurn() {
    TA0CCR1 = HALF_PERIOD - TURN_CONST;
@@ -15,6 +15,10 @@ void setForward() {
    TA0CCR1 = HALF_PERIOD;     // CCR1 = wave 1 off time
    TA0CCR2 = HALF_PERIOD;     // CCR2 = wave 2 off time
 }
+void setStop() {
+   TA0CCR1 = HALF_PERIOD * 2 + 10;  // CCR1 > CCR0, never on
+   TA0CCR2 = HALF_PERIOD * 2 + 10;  // CCR2 > CCR0, never on
+}
 void invertHigh() {
    P1OUT |= BIT3;
 }
@@ -22,8 +26,8 @@ void invertLow() {
    P1OUT &= ~BIT3;
 }
 void setSlow() {
-   TA0CCR1 = HALF_PERIOD - 50;
-   TA0CCR2 = HALF_PERIOD - 25;
+   TA0CCR1 = 2*HALF_PERIOD - 1000;
+   TA0CCR2 = 2*HALF_PERIOD - 1010;
 }
 
 void clockInit() {
@@ -34,7 +38,7 @@ void clockInit() {
 void main(void) {
 
    WDTCTL = WDTPW + WDTHOLD;  // Stop WDT
-   clockInit();               // 1 MHz
+   clockInit();               // 16 MHz
 
    P1DIR |= BIT3+ BIT2 + BIT1; // P1.3, P1.2, P1.1 output
    P1OUT &= ~(BIT2 + BIT1);   // init output, off
@@ -47,17 +51,15 @@ void main(void) {
    TA0CCTL2 |= CCIE;          //enable interrupts when TAR = CCTL2
    TA0CCTL0 |= CCIE;          //enable interrupts when TAR = CCTL0
 
-   TA0CTL = TASSEL_2 + MC_1;  // T_A, select 1MHz clock, up mode
+   TA0CTL = TASSEL_2 + MC_1;  // T_A, select 16MHz clock, up mode
 
    __bis_SR_register(GIE);
 
-   setForward();
-
    while(1) {
       __delay_cycles(8000000);
-      invertHigh();
+      setForward();
       __delay_cycles(8000000);
-      invertLow();
+      setStop();
    }
 }
 
