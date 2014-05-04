@@ -1,20 +1,21 @@
 #include <msp430.h>
 
 #define TURN_CONST 5000
-#define HALF_PERIOD 15000
+#define HALF_PERIOD 17900
+#define F_COMP 500
 
 void moveLeft();
-void moveRight();
-void forward();
-void stop();
-void slow();
-void invertHigh();
-void invertLow();
-void left90();
-void right90();
-void left45();
-void right45();
-void clockInit();
+void moveRight();   
+void forward();     // calibrate me with f_comp
+void stop();        // i'm good
+void slow();        // lower pwm
+void invertHigh();  // set invert high
+void invertLow();   // set invert low
+void left90();      // turn profile, not written yet
+void right90();     // turn profile, not written yet
+void left45();      // turn profile, not written yet
+void right45();     // turn profile, not written yet
+void clockInit();   
 void timerA0Init();
 
 void main(void) {
@@ -22,11 +23,11 @@ void main(void) {
    clockInit();
    timerA0Init();
 
-   while(1) {
-      __delay_cycles(8000000);
+   // WRITE YOUR CODE BELOW HERE IN WHILE LOOP!! AVAIALBE FUNCTIONS ARE ABOVE
+   // IF YOU REALLY NEED TO, MODIFY THE FUNCTIONS BELOW
+
+   while(1) {      
       forward();
-      __delay_cycles(8000000);
-      stop();
    }
 }
 
@@ -39,8 +40,8 @@ void moveRight() {
    TA0CCR2 = HALF_PERIOD - TURN_CONST;
 }
 void forward() {
-   TA0CCR1 = HALF_PERIOD;     // CCR1 = wave 1 off time
-   TA0CCR2 = HALF_PERIOD;     // CCR2 = wave 2 off time
+   TA0CCR1 = HALF_PERIOD + COMPENSATION;     // CCR1 = wave 1 off time
+   TA0CCR2 = HALF_PERIOD - COMPENSATION;     // CCR2 = wave 2 off time
 }
 void stop() {
    TA0CCR1 = HALF_PERIOD * 2 + 10;  // CCR1 > CCR0, never on
