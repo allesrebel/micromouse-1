@@ -3,21 +3,52 @@
 #define TURN_CONST 5000
 #define HALF_PERIOD 15000
 
-void setLeftTurn() {
+void moveLeft();
+void moveRight();
+void forward();
+void stop();
+void slow();
+void invertHigh();
+void invertLow();
+void left90();
+void right90();
+void left45();
+void right45();
+void clockInit();
+void timerA0Init();
+
+void main(void) {
+
+   clockInit();
+   timerA0Init();
+
+   while(1) {
+      __delay_cycles(8000000);
+      forward();
+      __delay_cycles(8000000);
+      stop();
+   }
+}
+
+void moveLeft() {
    TA0CCR1 = HALF_PERIOD - TURN_CONST;
    TA0CCR2 = HALF_PERIOD + TURN_CONST;
 }
-void setRightTurn() {
+void moveRight() {
    TA0CCR1 = HALF_PERIOD + TURN_CONST;
    TA0CCR2 = HALF_PERIOD - TURN_CONST;
 }
-void setForward() {
+void forward() {
    TA0CCR1 = HALF_PERIOD;     // CCR1 = wave 1 off time
    TA0CCR2 = HALF_PERIOD;     // CCR2 = wave 2 off time
 }
-void setStop() {
+void stop() {
    TA0CCR1 = HALF_PERIOD * 2 + 10;  // CCR1 > CCR0, never on
    TA0CCR2 = HALF_PERIOD * 2 + 10;  // CCR2 > CCR0, never on
+}
+void slow() {
+   TA0CCR1 = 2*HALF_PERIOD - 1000;
+   TA0CCR2 = 2*HALF_PERIOD - 1010;
 }
 void invertHigh() {
    P1OUT |= BIT3;
@@ -25,22 +56,26 @@ void invertHigh() {
 void invertLow() {
    P1OUT &= ~BIT3;
 }
-void setSlow() {
-   TA0CCR1 = 2*HALF_PERIOD - 1000;
-   TA0CCR2 = 2*HALF_PERIOD - 1010;
-}
+void left90() {
 
+}
+void right90() {
+
+}
+void left45() {
+
+}
+void right45() {
+
+}
 void clockInit() {
    BCSCTL1 = CALBC1_16MHZ;
    DCOCTL = CALDCO_16MHZ;
 }
-
-void main(void) {
-
+void timerA0Init() {
    WDTCTL = WDTPW + WDTHOLD;  // Stop WDT
-   clockInit();               // 16 MHz
 
-   P1DIR |= BIT3+ BIT2 + BIT1; // P1.3, P1.2, P1.1 output
+   P1DIR |= BIT3 + BIT2 + BIT1; // P1.3, P1.2, P1.1 output
    P1OUT &= ~(BIT2 + BIT1);   // init output, off
 
    TA0CCR1 = HALF_PERIOD;     // CCR1 = wave 1 off time
@@ -54,13 +89,6 @@ void main(void) {
    TA0CTL = TASSEL_2 + MC_1;  // T_A, select 16MHz clock, up mode
 
    __bis_SR_register(GIE);
-
-   while(1) {
-      __delay_cycles(8000000);
-      setForward();
-      __delay_cycles(8000000);
-      setStop();
-   }
 }
 
 #pragma vector=TIMER0_A0_VECTOR
