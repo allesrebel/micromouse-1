@@ -15,10 +15,15 @@ void setForward() {
    TA0CCR1 = HALF_PERIOD;     // CCR1 = wave 1 off time
    TA0CCR2 = HALF_PERIOD;     // CCR2 = wave 2 off time
 }
-
+void invertHigh() {
+   P1OUT |= BIT3;
+}
+void invertLow() {
+   P1OUT &= ~BIT3;
+}
 void setSlow() {
-   TA0CCR1 = HALF_PERIOD / 4;
-   TA0CCR2 = HALF_PERIOD / 4;
+   TA0CCR1 = HALF_PERIOD - 50;
+   TA0CCR2 = HALF_PERIOD - 25;
 }
 
 void clockInit() {
@@ -31,7 +36,7 @@ void main(void) {
    WDTCTL = WDTPW + WDTHOLD;  // Stop WDT
    clockInit();               // 1 MHz
 
-   P1DIR |= BIT2 + BIT1;      // P1.2, P1.1 output
+   P1DIR |= BIT3+ BIT2 + BIT1; // P1.3, P1.2, P1.1 output
    P1OUT &= ~(BIT2 + BIT1);   // init output, off
 
    TA0CCR1 = HALF_PERIOD;     // CCR1 = wave 1 off time
@@ -46,9 +51,13 @@ void main(void) {
 
    __bis_SR_register(GIE);
 
+   setForward();
+
    while(1) {
       __delay_cycles(8000000);
-      setSlow();
+      invertHigh();
+      __delay_cycles(8000000);
+      invertLow();
    }
 }
 
