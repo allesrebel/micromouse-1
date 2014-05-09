@@ -41,7 +41,7 @@ return 0;
 
 #pragma vector = TIMER0_A1_VECTOR
 __interrupt void ta0cc0_isr (void) {                      //change to timer1, nao plox
- if(P2OUT == 0x40) {
+ if(P2OUT == 0x80) {
     P2OUT = 0x01;
     }
  else {
