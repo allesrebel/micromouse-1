@@ -26,8 +26,8 @@ int main() {
   P2DIR = 0xFF;		                                  //set pins to control decoder
   P2SEL = 0x00;
   P2SEL2 = 0x00;
-  CCR0 = 250*8;                                           // PWM Period                                         /*CHANGE ME TO TIMER1*/
-  CCTL0 = CCIE;                                           //							/*CHANGE ME TO TIMER1*/
+  TA1CCR0 = 250*8;                                           // PWM Period                                         /*CHANGE ME TO TIMER1*/
+  TA1CCTL0 = CCIE;                                           //							/*CHANGE ME TO TIMER1*/
 
   TACTL = TASSEL_2 + MC_1 + TAIE;                         // SMCLK, up mode  				        /*CHANGE ME TO TIMER1*/
 
@@ -39,8 +39,8 @@ int main() {
 return 0;
 }
 
-#pragma vector = TIMER0_A1_VECTOR
-__interrupt void ta0cc0_isr (void) {                      //change to timer1, nao plox
+#pragma vector = TIMER1_A1_VECTOR
+__interrupt void ta1cc0_isr (void) {                      //change to timer1, nao plox
  if(P2OUT == 0x40) {
     P2OUT = 0x01;
     }
