@@ -29,7 +29,7 @@ int main() {
   TA1CCR0 = 250*8;                                           // PWM Period                                         /*CHANGE ME TO TIMER1*/
   TA1CCTL0 = CCIE;                                           //							/*CHANGE ME TO TIMER1*/
 
-  TACTL = TASSEL_2 + MC_1 + TAIE;                         // SMCLK, up mode  				        /*CHANGE ME TO TIMER1*/
+  TA1CTL = TASSEL_2 + MC_1 + TAIE;                         // SMCLK, up mode  				        /*CHANGE ME TO TIMER1*/
 
   ADC10CTL0 |= ENC + ADC10SC + ADC10DIV2;                 //change to timer1, nao plox
   __bis_SR_register(GIE);
