@@ -4,6 +4,9 @@
 #include "micromouse.h"
 
 #define min_dist(i,j) min(min(abs(i-center)+abs(j-center),abs(i-center+1)+abs(j-center)),min(abs(i-center)+abs(j-center+1),abs(i-center+1)+abs(j-center+1)));
+#define STEP_LENGTH 110
+
+extern volatile int encoder0, encoder5, encoder6, encoder7;
 
 struct Node {
   char walls;
@@ -53,7 +56,7 @@ enum Direction {
 Direction direct = NORTH;
 
 // Constants
-const int tileSize = 20; // change to 18 for centimeters
+const int tileSize = 18; // change to 18 for centimeters
 // set this to 3-5 ms to give all sensors a chance to refresh
 const int timeDelay = 50; // simulate changing of time (purely for debugging)
 
@@ -73,7 +76,7 @@ int main() {
   }
   for(;;) {
     // Calculate Distance and determine current square      /*change to encoders*/
-    tempDist = (timeDiff/1000 * motorSpeed)/1000;
+    tempDist = encoder0 / STEP_LENGTH;
     // addDist may be needed
     addDist(tempDist);
     curNodeX = botDistX / tileSize;
@@ -154,16 +157,16 @@ void updateCosts() {
         // tempCost - 1.
         int tempCost = mapSize*mapSize;
         char walls = maze[i][j].walls;
-        if(!bitRead(walls,NORTH) && i-1 >= 0){
+        if(!(walls && NORTH) && i-1 >= 0){
           neighbors[NORTH] = maze[i-1][j].cost;
         }
-        if(!bitRead(walls,EAST) && j+1 < mapSize) {
+        if(!(walls && EAST) && j+1 < mapSize) {
           neighbors[EAST] = maze[i][j+1].cost;
         }
-        if(!bitRead(walls,SOUTH) && i+1 < mapSize) {
+        if(!(walls && SOUTH) && i+1 < mapSize) {
           neighbors[SOUTH] = maze[i+1][j].cost;
         }
-        if(!bitRead(walls,WEST) && j-1 >= 0) {
+        if(!(walls && WEST) && j-1 >= 0) {
           neighbors[WEST] = maze[i][j-1].cost;
         }
         for(int k=0; k<4; k++) {
@@ -200,19 +203,19 @@ void getNextDirection() {
   char walls = maze[curNodeY][curNodeX].walls;
   // set it to Mapsize * map size
   int tempCost = 1000;
-  if(!bitRead(walls,0) && curNodeY > 0) {
+  if(!(walls && 0) && curNodeY > 0) {
     direct = NORTH;
-    tempCost = maze[curNodeY-1][curNodeX].cost;      /*change bitreads*/
+    tempCost = maze[curNodeY-1][curNodeX].cost;
   }
-  if(!bitRead(walls,1) && maze[curNodeY][curNodeX+1].cost < tempCost && curNodeX < mapSize-1) {
+  if(!(walls && 1) && maze[curNodeY][curNodeX+1].cost < tempCost && curNodeX < mapSize-1) {
     direct = EAST;
     tempCost = maze[curNodeY][curNodeX+1].cost;
   }
-  if(!bitRead(walls,2) && maze[curNodeY+1][curNodeX].cost < tempCost && curNodeY < mapSize-1) {
+  if(!(walls && 2) && maze[curNodeY+1][curNodeX].cost < tempCost && curNodeY < mapSize-1) {
     direct = SOUTH;
     tempCost = maze[curNodeY+1][curNodeX].cost;
   }
-  if(!bitRead(walls,3) && maze[curNodeY][curNodeX-1].cost < tempCost && curNodeX > 0) {
+  if(!(walls && 3) && maze[curNodeY][curNodeX-1].cost < tempCost && curNodeX > 0) {
     direct = WEST;
     tempCost = maze[curNodeY][curNodeX-1].cost;
   }
