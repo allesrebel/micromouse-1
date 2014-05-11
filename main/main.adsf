@@ -1,0 +1,281 @@
+#include <msp430.h>
+#include <stdio.h>
+#include <math.h>
+#include "micromouse.h"
+
+#define min_dist(i,j) min(min(abs(i-center)+abs(j-center),abs(i-center+1)+abs(j-center)),min(abs(i-center)+abs(j-center+1),abs(i-center+1)+abs(j-center+1)));
+
+struct Node {
+  char walls;
+  char cost;
+};
+
+//Search
+char TO_CENTER = 1;
+char TO_START = 0;
+
+//Map
+const char mapSize = 16;
+char center = mapSize/2;
+Node maze[mapSize][mapSize];
+
+// Get sensor data here.
+/*const char discoWalls[mapSize][mapSize] = {
+  11,11,11,9,5,5,5,5,5,5,5,5,5,5,5,3,
+  10,10,8,2,9,5,5,5,5,5,5,5,5,5,5,2,
+  12,0,2,10,10,13,5,5,3,9,5,5,5,5,3,10,
+  9,6,10,10,10,9,5,5,0,4,9,5,5,5,2,10,
+  8,5,6,10,10,8,5,1,4,3,12,5,5,3,10,10,
+  8,5,5,6,10,10,9,4,7,14,9,5,5,6,10,10,
+  10,9,5,5,6,8,0,7,9,3,12,5,5,3,10,10,
+  10,8,5,5,5,6,14,9,2,8,5,5,5,6,14,14,
+  10,10,9,5,5,3,11,9,6,8,1,5,1,5,1,3,
+  10,12,4,5,3,10,8,5,5,6,12,1,0,5,2,10,
+  8,5,5,3,10,10,12,5,5,5,5,6,12,5,2,10,
+  8,5,3,10,10,10,9,5,5,5,5,5,5,5,4,2,
+  9,3,10,10,10,10,12,5,5,5,5,5,5,5,3,10,
+  9,0,2,10,10,12,5,5,5,5,5,5,5,5,6,14,
+  10,10,8,2,12,5,5,5,5,5,5,5,5,5,5,3,
+  14,14,14,12,5,5,5,5,5,5,5,5,5,5,5,6};
+*/
+// Distance
+// Ignore times due to having encoder.
+// Encoder can just give the amount of time running.
+unsigned long curTime=0;
+int motorSpeed=50, tempDist=0; // delta distance
+int botDistX=0, botDistY=300; // may use struct
+int curNodeX=0, curNodeY=0;
+
+// Directions
+enum Direction {
+  NORTH = 0, EAST, SOUTH, WEST};
+// Great for easy calculations of cost.
+Direction direct = NORTH;
+
+// Constants
+const int tileSize = 20; // change to 18 for centimeters
+// set this to 3-5 ms to give all sensors a chance to refresh
+const int timeDelay = 50; // simulate changing of time (purely for debugging)
+
+
+int main() {
+  adc_init();
+  motorInit();
+  encoderReset(RST_ALL_ENC);
+  encoderInit();
+
+  for(int i=0; i<mapSize; i++) {
+    for(int j=0; j<mapSize; j++) {
+      // reference all the costs with respect to center.
+      maze[i][j].cost = min_dist(i,j);
+      maze[i][j].walls = 0;
+    }
+  }
+  for(;;) {
+    // Calculate Distance and determine current square      /*change to encoders*/
+    tempDist = (timeDiff/1000 * motorSpeed)/1000;
+    // addDist may be needed
+    addDist(tempDist);
+    curNodeX = botDistX / tileSize;
+    curNodeY = botDistY / tileSize;
+
+    // Get wall information and update node costs
+    // Use sensor black magic here.                     /*add sensor stuff here*/
+    maze[curNodeY][curNodeX].walls=discoWalls[curNodeY][curNodeX];
+    updateCosts();
+    getNextDirection();
+
+    //Check for maze completion
+    if(TO_CENTER && inCenter(curNodeX,curNodeY)) {
+      progTime = 0;
+      TO_START = 1;
+      TO_CENTER = 0;
+      for(int i=0; i<mapSize; i++) {
+        for(int j=0; j<mapSize; j++){
+          // only need absolute distance from the center
+          maze[i][j].cost = abs(i+j);
+        }
+      }
+      updateCosts();
+    }
+    //Check for return trip
+    else if(TO_START && curNodeX == 0 && curNodeY == 0) {
+      progTime = 0;
+      TO_START = 0;
+      TO_CENTER = 1;
+      for(int i=0; i < mapSize; i++) {
+        for(int j=0; j < mapSize; j++) {
+          maze[i][j].cost = min_dist(i,j);
+        }
+      }
+      updateCosts();
+    }
+  }
+  return 0;
+}
+
+//Add distance traveled since last loop iteration based on current direction
+void addDist(int dist) {
+  // Serial.println("Entering addDist()");
+  if(direct==NORTH) {
+    botDistY -= dist;
+  }
+  else if(direct==SOUTH) {
+    botDistY += dist;
+  }
+  else if(direct==EAST) {
+    botDistX += dist;
+  }
+  else
+    botDistX -= dist;
+}
+
+char getWalls() {                                 /*use sensors here*/
+  // Will become useful with advent of sensors.
+  // Serial.println("Entering getWalls()");
+  // Serial.println("Exiting getWalls()");
+  // Serial.println();
+  return 00000000;
+}
+
+//Iterate through each square until all squares have at least one square of lower value adjacent to them.
+//This is accomplished by comparing the cost of each adjacent neighbor determined by the surrounding walls.
+//Once the minimum value of the neighbors is taken, it's compared to the current square's cost.
+void updateCosts() {
+  // Serial.println("Entering updateCosts()");
+  char check = 1;
+  while(check) {
+    check = 0;
+    for(int i=0; i<mapSize; i++) {
+      for(int j=0; j<mapSize; j++) {
+        // Initialize to impossible value.
+        int neighbors[4] = {-1,-1,-1,-1};
+        // Initialize to impossible value. The cost can only be at max as
+        // tempCost - 1.
+        int tempCost = mapSize*mapSize;
+        char walls = maze[i][j].walls;
+        if(!bitRead(walls,NORTH) && i-1 >= 0){
+          neighbors[NORTH] = maze[i-1][j].cost;
+        }
+        if(!bitRead(walls,EAST) && j+1 < mapSize) {
+          neighbors[EAST] = maze[i][j+1].cost;
+        }
+        if(!bitRead(walls,SOUTH) && i+1 < mapSize) {
+          neighbors[SOUTH] = maze[i+1][j].cost;
+        }
+        if(!bitRead(walls,WEST) && j-1 >= 0) {
+          neighbors[WEST] = maze[i][j-1].cost;
+        }
+        for(int k=0; k<4; k++) {
+	  // use define for impossible value.
+          if(neighbors[k] != -1 && neighbors[k] < tempCost) {
+            tempCost = neighbors[k];
+          }
+        }
+        // If you're going to the center.
+        if(TO_CENTER) {
+          if(tempCost >= maze[i][j].cost && !inCenter(i,j) && tempCost != mapSize*mapSize) {
+            // Serial.println("Changing Node Cost");
+            maze[i][j].cost = tempCost + 1;
+            // To escape the function.
+            check = 1;
+          }
+        }
+        // If you're heading back to the start.
+        else if(TO_START) {
+          if(tempCost >= maze[i][j].cost && !(i == 0 && j == 0) && tempCost != mapSize*mapSize) {
+            maze[i][j].cost = tempCost + 1;
+            // To escape the function.
+            check = 1;
+          }
+        }
+      }
+    }
+  }
+}
+
+// The lowest cost square is determined by using wall data for the current square.
+void getNextDirection() {
+  Node tempNode = maze[curNodeY][curNodeX];
+  char walls = maze[curNodeY][curNodeX].walls;
+  // set it to Mapsize * map size
+  int tempCost = 1000;
+  if(!bitRead(walls,0) && curNodeY > 0) {
+    direct = NORTH;
+    tempCost = maze[curNodeY-1][curNodeX].cost;      /*change bitreads*/
+  }
+  if(!bitRead(walls,1) && maze[curNodeY][curNodeX+1].cost < tempCost && curNodeX < mapSize-1) {
+    direct = EAST;
+    tempCost = maze[curNodeY][curNodeX+1].cost;
+  }
+  if(!bitRead(walls,2) && maze[curNodeY+1][curNodeX].cost < tempCost && curNodeY < mapSize-1) {
+    direct = SOUTH;
+    tempCost = maze[curNodeY+1][curNodeX].cost;
+  }
+  if(!bitRead(walls,3) && maze[curNodeY][curNodeX-1].cost < tempCost && curNodeX > 0) {
+    direct = WEST;
+    tempCost = maze[curNodeY][curNodeX-1].cost;
+  }
+}
+
+// Checks to see if current square is at the center of the maze.
+char inCenter(int x, int y) {
+  if((x == center && y == center) || (x == center-1 && y == center)
+     || (x == center && y == center-1) || (x == center-1 && y == center-1)) {
+    return 1;
+  }
+  return 0;
+}
+
+//interrupts for motor pwm
+#pragma vector=TIMER0_A0_VECTOR
+__interrupt void ccr0_clear_pulse (void) {
+  P1OUT &= ~(BIT2 + BIT1);      // turn off p1.1 and p1.2
+}
+
+#pragma vector=TIMER0_A1_VECTOR
+__interrupt void ccr1_2_set_pulse (void) {
+  switch(TAIV) {
+  case 2: P1OUT |= BIT1;        // turn on p1.1 (left motor)
+    break;
+  case 4: P1OUT |= BIT2;        // turn on p1.2 (right motor)
+    break;
+  }
+}
+
+//interrupt for the encoder
+#pragma vector=PORT1_VECTOR
+__interrupt void falling_edge_capture() {  // captures falling edge from encoder wave
+  if(P1IFG & BIT0) {    // if button interrupt is on BIT0,
+    encoder0++;        // increment encoder0 count
+    P1IFG &= ~BIT0;    // clear interrupt flag for BIT0
+  } else if(P1IFG & BIT5) {
+    encoder5++;
+    P1IFG &= ~BIT5;
+  } else if(P1IFG & BIT6) {
+    encoder6++;
+    P1IFG &= ~BIT6;
+  } else if(P1IFG & BIT7) {
+    encoder7++;
+    P1IFG &= ~BIT7;
+  }
+}
+
+//interrupt for turning on LEDs
+#pragma vector = TIMER1_A1_VECTOR
+__interrupt void ta1cc0_isr (void) {
+  if(P2OUT == 0x40) {
+    P2OUT = 0x01;
+  }
+  else {
+    P2OUT = P2OUT << 1;
+  }
+}
+
+// ADC10 interrupt service routine
+#pragma vector=ADC10_VECTOR
+__interrupt void ADC10_ISR(void) {
+  sensorVal[conv_int(P2OUT)] = ADC10MEM;
+  ADC10CTL0 &= ~ADC10IFG;
+  ADC10CTL0 |= ENC + ADC10SC;
+}

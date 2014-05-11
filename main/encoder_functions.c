@@ -1,4 +1,6 @@
 #include <msp430.h> 
+#include "micromouse.h"
+
 #define RST_ALL_ENC 10
 #define ENC0 0
 #define ENC5 5
@@ -13,7 +15,7 @@ void encoderInit() {
   P1DIR &= ~(BIT0 + BIT5 + BIT6 + BIT7);
   P1REN |= BIT0 + BIT5 + BIT6 + BIT7;
   P1IE |= BIT0 + BIT5 + BIT6 + BIT7;
-  __enable_interrupts();
+  __bis_SR_register(GIE);
 }
 
 void encoderReset(int encoderBit) {
@@ -23,22 +25,5 @@ void encoderReset(int encoderBit) {
   case ENC6: encoder6 = 0;
   case ENC7: encoder7 = 0;
   case RST_ALL_ENC: encoder7 = encoder6 = encoder5 = encoder7 = 0;
-  }
-}
-
-#pragma vector=PORT1_VECTOR
-__interrupt void falling_edge_capture() {  // captures falling edge from encoder wave
-  if(P1IFG & BIT0) {    // if button interrupt is on BIT0,
-    encoder0++;        // increment encoder0 count
-    P1IFG &= ~BIT0;    // clear interrupt flag for BIT0
-  } else if(P1IFG & BIT5) {
-    encoder5++;
-    P1IFG &= ~BIT5;
-  } else if(P1IFG & BIT6) {
-    encoder6++;
-    P1IFG &= ~BIT6;
-  } else if(P1IFG & BIT7) {
-    encoder7++;
-    P1IFG &= ~BIT7;
   }
 }

@@ -1,27 +1,18 @@
 #include <msp430.h>
+#include "micromouse.h"
 
 #define TURN_CONST 7500
 #define HALF_PERIOD 15000   // DO NOT TOUCH ME!!! (I AM AT 15000)
 #define FAST_CALIB 400
 
-void moveRight();             // do not use
-void moveLeft();              // do not use
-void forward();             // 40% duty
-void stop();                // 0% duty
-void easeStop();              // do not use! has _delay_cycles()
-void slow();                // 25% duty
-void fast();                  // do not use
-void torque();              // full speed, only use to start motors
-void invertHigh();          // set invert high
-void invertLow();           // set invert low
-void left90();              // turn profile, test me
-void right90();             // turn profile, test me
-void left45();                // turn profile, not written yet
-void right45();               // turn profile, not written yet
-void clockInit();           // always use me before timerA0Init
-void timerA0Init();         // make sure to init the timer!
-void motorInit();           // i'm just the two above, in order!!
-
+void onlyRight() {
+  TA0CCR1 = TURN_CONST;
+  TA0CCR2 = HALF_PERIOD*2 + 10;
+}
+void onlyLeft() {
+  TA0CCR1 = HALF_PERIOD*2 + 10;
+  TA0CCR2 = TURN_CONST;
+}
 void moveRight() {
   TA0CCR1 = TURN_CONST;
   TA0CCR2 = HALF_PERIOD + 100;
@@ -106,19 +97,4 @@ void timerA0Init() {
 void motorInit() {
   clockInit();
   timerA0Init();
-}
-
-#pragma vector=TIMER0_A0_VECTOR
-__interrupt void ccr0_clear_pulse (void) {
-  P1OUT &= ~(BIT2 + BIT1);      // turn off p1.1 and p1.2
-}
-
-#pragma vector=TIMER0_A1_VECTOR
-__interrupt void ccr1_2_set_pulse (void) {
-  switch(TAIV) {
-  case 2: P1OUT |= BIT1;        // turn on p1.1 (left motor)
-    break;
-  case 4: P1OUT |= BIT2;        // turn on p1.2 (right motor)
-    break;
-  }
 }
