@@ -97,4 +97,5 @@ void timerA0Init() {
 void motorInit() {
   clockInit();
   timerA0Init();
+  __delay_cycles(32000);         // to allow motor to init
 }
