@@ -57,9 +57,6 @@ Direction direct = NORTH;
 
 // Constants
 const int tileSize = 18; // change to 18 for centimeters
-// set this to 3-5 ms to give all sensors a chance to refresh
-const int timeDelay = 50; // simulate changing of time (purely for debugging)
-
 
 int main() {
   adc_init();
@@ -76,11 +73,11 @@ int main() {
   }
   for(;;) {
     // Calculate Distance and determine current square      /*change to encoders*/
-    tempDist = encoder0 / STEP_LENGTH;
+    tempDist = encoder0;
     // addDist may be needed
     addDist(tempDist);
-    curNodeX = botDistX / tileSize;
-    curNodeY = botDistY / tileSize;
+    curNodeX = botDistX / STEP_LENGTH;
+    curNodeY = botDistY / STEP_LENGTH;
 
     // Get wall information and update node costs
     // Use sensor black magic here.                     /*add sensor stuff here*/
