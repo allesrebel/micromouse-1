@@ -1,10 +1,10 @@
 #include <msp430.h>
-#include <stdio.h>
+//#include <stdio.h>
 
 #define SENSOR_NUM 8
 #define SENSOR_READ BIT4
 
-static volatile int sensorVal[SENSOR_NUM] = {0,0,0,0,0,0,0,0};
+volatile int sensorVal[SENSOR_NUM] = {0,0,0,0,0,0,0,0};
 
 //Convert 8 bit binary with only one '1' to an integer
 int conv_int(int input) {
@@ -26,10 +26,9 @@ int conv_int(int input) {
          return 7;
    else
       return -1;
-
 }
 
-void main() {
+void adc_init() {
    WDTCTL = WDTPW + WDTHOLD;                               // Stop WDT
    ADC10CTL0 = ADC10SHT_2 + ADC10ON + ADC10IE;             // ADC10ON, interrupt enabled
    ADC10CTL1 = INCH_4;                                     // input A4 on 1.4
@@ -47,29 +46,6 @@ void main() {
    ADC10CTL0 |= ENC + ADC10SC;                 //change to timer1, nao plox
    ADC10CTL1 |=  ADC10DIV2;
    __bis_SR_register(GIE);
-
-   while(1)
-   {
-
-   }
 }
-
-#pragma vector = TIMER1_A0_VECTOR
-__interrupt void TIMER1_A0_ISR (void) {                      //change to timer1, nao plox
-   P2OUT = P2OUT << 1;
-   if(!P2OUT) {                                 //lol
-      P2OUT = 0x01;
-   }
-
-   ADC10CTL0 |= ADC10SC;
-}
-
-// ADC10 interrupt service routine
-#pragma vector=ADC10_VECTOR
-__interrupt void ADC10_ISR(void) {
-   sensorVal[conv_int(P2OUT)] = ADC10MEM;
-   ADC10CTL0 &= ~ADC10IFG;
-}
-
 //cont convert and store in timer ISR
 //set adc convert flag in timer asr then adc10sc in main if flag

@@ -2,9 +2,11 @@
 #define MICROMOUSE_H
 
 //declaring global variables
-extern volatile int sensorVal[8];   //global variable storing sensor values
-extern volatile int encoder0, encoder5 = 0;//golbal variable storing encoder values
-extern volatile int encoder6, encoder7 = 0;
+extern volatile int sensorVal[8];          //global variable storing sensor values
+extern volatile int encoder0;              //golbal variable storing encoder values
+extern volatile int encoder5;
+extern volatile int encoder6;
+extern volatile int encoder7;
 
 //function prototypes for adc
 int conv_int(int input);

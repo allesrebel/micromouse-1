@@ -262,20 +262,19 @@ __interrupt void falling_edge_capture() {  // captures falling edge from encoder
 }
 
 //interrupt for turning on LEDs
-#pragma vector = TIMER1_A1_VECTOR
-__interrupt void ta1cc0_isr (void) {
-  if(P2OUT == 0x40) {
-    P2OUT = 0x01;
-  }
-  else {
-    P2OUT = P2OUT << 1;
-  }
+#pragma vector = TIMER1_A0_VECTOR
+__interrupt void TIMER1_A0_ISR (void) {
+   P2OUT = P2OUT << 1;
+   if(!P2OUT) {
+      P2OUT = 0x01;
+   }
+
+   ADC10CTL0 |= ADC10SC;
 }
 
 // ADC10 interrupt service routine
 #pragma vector=ADC10_VECTOR
 __interrupt void ADC10_ISR(void) {
-  sensorVal[conv_int(P2OUT)] = ADC10MEM;
-  ADC10CTL0 &= ~ADC10IFG;
-  ADC10CTL0 |= ENC + ADC10SC;
+   sensorVal[conv_int(P2OUT)] = ADC10MEM;
+   ADC10CTL0 &= ~ADC10IFG;
 }

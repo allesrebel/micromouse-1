@@ -6,12 +6,12 @@
 #define FAST_CALIB 400
 
 void onlyRight() {
-  TA0CCR1 = TURN_CONST;
+  TA0CCR1 = 2000;
   TA0CCR2 = HALF_PERIOD*2 + 10;
 }
 void onlyLeft() {
   TA0CCR1 = HALF_PERIOD*2 + 10;
-  TA0CCR2 = TURN_CONST;
+  TA0CCR2 = 2000;
 }
 void moveRight() {
   TA0CCR1 = TURN_CONST;
